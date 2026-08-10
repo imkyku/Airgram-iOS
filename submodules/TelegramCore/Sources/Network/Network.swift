@@ -710,7 +710,7 @@ func initializedNetwork(
           }
         }
       #endif
-
+_ = wrappedAdditionalSource
       if !supplementary {
         // OwpenGram: disable Telegram backup DC discovery
         let externalRequestVerificationStream = arguments.externalRequestVerificationStream
