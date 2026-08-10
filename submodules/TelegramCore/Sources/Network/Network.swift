@@ -712,10 +712,7 @@ func initializedNetwork(
       #endif
 
       if !supplementary {
-        context.setDiscoverBackupAddressListSignal(
-          MTBackupAddressSignals.fetchBackupIps(
-            testingEnvironment, currentContext: context, additionalSource: wrappedAdditionalSource,
-            phoneNumber: phoneNumber, mainDatacenterId: datacenterId))
+        // OwpenGram: disable Telegram backup DC discovery
         let externalRequestVerificationStream = arguments.externalRequestVerificationStream
         context.setExternalRequestVerification({ nonce in
           return MTSignal(generator: { subscriber in
