@@ -298,7 +298,8 @@ class BazelCommandLine:
 
         if self.disable_provisioning_profiles:
             combined_arguments += ['--//Telegram:disableProvisioningProfiles']
-
+        
+        combined_arguments += ['--//Telegram:disableExtensions']
         combined_arguments += self.common_args
         combined_arguments += self.common_build_args
         combined_arguments += self.get_define_arguments()
