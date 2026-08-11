@@ -58,6 +58,51 @@ jobs:
           ls -lah build-artifacts
           unzip -l build-artifacts/Telegram.ipa | head -50
 
+      - name: Verify sideload IPA
+        run: |
+          rm -rf ipa-check
+          mkdir -p ipa-check
+
+          unzip -q build-artifacts/Telegram.ipa -d ipa-check
+
+          APP_PATH=$(find ipa-check/Payload -maxdepth 1 -name "*.app" -type d | head -1)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: .app not found inside IPA"
+            exit 1
+          fi
+
+          echo "========== APP =========="
+          echo "$APP_PATH"
+
+          echo "========== PLUGINS =========="
+          APPEX_LIST=$(find "$APP_PATH" -name "*.appex" -print || true)
+          if [ -n "$APPEX_LIST" ]; then
+            echo "$APPEX_LIST"
+            echo "ERROR: sideload IPA still contains app extensions"
+            exit 1
+          else
+            echo "OK: no .appex extensions found"
+          fi
+
+          echo "========== BUNDLE ID =========="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist"
+
+          echo "========== DISPLAY NAME =========="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP_PATH/Info.plist" || true
+
+          echo "========== ENTITLEMENTS =========="
+          ENTITLEMENTS=$(codesign -d --entitlements :- "$APP_PATH" 2>&1 || true)
+          echo "$ENTITLEMENTS"
+
+          echo "========== FORBIDDEN ENTITLEMENTS CHECK =========="
+          if echo "$ENTITLEMENTS" | grep -qE 'com\.apple\.security\.application-groups|aps-environment|com\.apple\.developer\.icloud|com\.apple\.developer\.siri|com\.apple\.developer\.associated-domains'; then
+            echo "ERROR: special entitlements are still present"
+            exit 1
+          else
+            echo "OK: no App Groups / Push / iCloud / Siri / Associated Domains entitlements"
+          fi
+
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
